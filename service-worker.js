@@ -15,6 +15,7 @@ const FILES_TO_CACHE = [
     "./dist/schedule.bundle.js"
 ];
 
+//Cache resources
 self.addEventListener('install', function (e) {
     e.waitUntil(
         caches.open(CACHE_NAME).then(function (cache) {
@@ -23,3 +24,23 @@ self.addEventListener('install', function (e) {
         })
     )
 })
+
+//Delete outdated caches 
+// Activate the service worker
+self.addEventListener('activate', function (e) {
+    e.waitUntil(
+        caches.keys().then(function (keyList) {
+            let cacheKeeplist = keyList.filter(function (key) {
+                return key.indexOf(APP_PREFIX);
+            })
+            // add the current cache to the keeplist
+            cacheKeeplist.push(CACHE_NAME);
+            return Promise.all(keyList.map(function (key, i) {
+                if (cacheKeeplist.indexOf(key) === -1) {
+                    console.log('deleting cache : ' + keyList[i]);
+                    return caches.delete(keyList[i]);
+                }
+            }));
+        })
+    )
+});
